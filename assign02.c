@@ -17,15 +17,15 @@ int main() {
     return(0);
 }
 
-struct MorseCode * new_morse_code(){
-    struct MorseCode * result;
+struct morse_code * new_morse_code(){
+    struct morse_code * result;
     result ->pointer = 0;
     char morseCodeArray[32] = {'-', 'e', 't', 'i','a','n','m','s','u','r','w','d','k','g'
-    ,'o','h','v','f','?','l','?','p','j','b','x','c','y','z','q','?','?',"\0"};
+    ,'o','h','v','f','?','l','?','p','j','b','x','c','y','z','q','?','?','\0'};
     result ->items = morseCodeArray; 
     return result;
 }
-char morseCodeRead(struct MorseCode * input){
+char morseCodeRead(struct morse_code * input){
     if(input->pointer > 31){
         return '?';
     }
@@ -33,23 +33,23 @@ char morseCodeRead(struct MorseCode * input){
     return output;
 }
 
-void morseCodeReset(struct MorseCode * input){
+void morseCodeReset(struct morse_code * input){
     input->pointer = 0;
 }
-int morseCodeValid(struct MorseCode * input){
+int morseCodeValid(struct morse_code * input){
     if (morseCodeRead(input) == '?' || morseCodeRead(input) == '-'){
         return 0;
     }
     return 1;
 }
-void morseCodeDot(struct MorseCode * input){
+void morseCodeDot(struct morse_code * input){
 
     input->pointer = ((input->pointer + 1) * 2)-1;
 }
 
 
 
-void morseCodeDash(struct MorseCode * input){
+void morseCodeDash(struct morse_code * input){
 
     input->pointer = ((input->pointer + 1) * 2);
 }

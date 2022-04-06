@@ -5,15 +5,15 @@
 #include <assert.h>
 
 
-struct MorseCode{
+struct morse_code{
     int pointer;
     char * items;
 };
 
-struct morseCode * new_morse_code();
-char morseCodeRead(struct MorseCode * input);
-void morseCodeReset(struct MorseCode * input);
-void morseCodeDot(struct MorseCode * input);
-void morseCodeDash(struct MorseCode * input);
-int morseCodeValid(struct MorseCode * input);
+struct morse_code * new_morse_code();
+char morseCodeRead(struct morse_code * input);
+void morseCodeReset(struct morse_code * input);
+void morseCodeDot(struct morse_code * input);
+void morseCodeDash(struct morse_code * input);
+int morseCodeValid(struct morse_code * input);
 
