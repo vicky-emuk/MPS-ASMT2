@@ -61,31 +61,50 @@ int main() {
     stdio_init_all();
     gpio_set_irq_enabled(21, GPIO_IRQ_EDGE_FALL, true); // init GPIO 21 for falling edge detection
     gpio_set_irq_enabled(21, GPIO_IRQ_EDGE_RISE, true);
-
-    printf("Welcome to group 23's Morse Code Game!\nHow to play?:\n To play, you simply have to enter the correct morse code sequence for the word (or character) displayed!\n Please select the difficulty you would like to play on by entering the corresponding morse code character\n");
-    main_asm();
  
+
     // Initialise the PIO interface with the WS2812 code
     PIO pio = pio0;
     uint offset = pio_add_program(pio, &ws2812_program);
     ws2812_program_init(pio, 0, offset, GPIO_PIN, 800000, IS_RGBW);
 
-    // Set the color to red at half intensity
+    // Set the color to blue
     colour_change(4);
-    sleep_ms(500);
 
-    FILE *dictionary;
-    dictionary = (fopen("dictionary.txt", "r"));
-    if(fptr == NULL)
+    printf("Welcome to group 23's More Code Game!\nHow to play?:\n To play, you simply have to enter the correct morse code sequence for the word (or character) displayed!\n Please select the difficulty you would like to play on by entering the corresponding morse code character\n");
+    main_asm();
+
+    int twentyPressed=0;
+    int level=1;
+    while(twentyPressed==0)
     {
-        printf("File not present");
-        exit(1);
+        //button checks etc
+        if(asm_gpio_get(20))twentyPressed=1;
+        if(asm_gpio_get(21))
+        {
+            if(level==1)level=4;
+            else level--;
+        }
+        if(asm_gpio_get(22))
+        {
+            if(level==4)level=1;
+            else level++;
+        }
+    }
+    switch(level)
+    {
+        case 1:
+            levelOne();
+        case 2:
+        case 3:
+        case 4:
+            break;
+        default :
+        printf("Error");
     }
 
-    // Set the color to green at half intensity
-    colour_change(3);
-    sleep_ms(500);
 
+    
     // Set the color to blue at half intensity
     colour_change(2);
     sleep_ms(500);
@@ -100,4 +119,45 @@ int main() {
 
     // Should never get here due to infinite while-loop.
     return 0;
+}
+
+char** takeInDictionary()
+{
+    FILE *dictionary;
+    dictionary = (fopen("dictionary.txt", "r"));
+    if(fptr == NULL)
+    {
+        printf("File not present");
+        exit(1);
+    }
+}
+
+void levelOne()
+{
+    // Set the color to green
+    char** dictionary=takeInDictionary(); 
+    int lives=3;
+    int correctInARow=0;
+    While((correctInARow<5)&&(lives>0))
+    {
+        colour_change(lives);
+
+        //pick random letter
+        printf("%c",randomChar);
+
+        //take in morse code 
+    
+        if(correct)
+        {
+            printf("correct!");
+            correctInARow++;
+            if(lives<3)lives++;
+        }
+        else
+        {
+            printf("Incorrect input!")
+            correctInARow=0;
+            lives--;
+        }
+    }    
 }
