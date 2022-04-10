@@ -24,9 +24,14 @@
 
 @ Entry point to the ASM portion of the program
 main_asm:
-    b       init_btns
-    b       main_asm                                           @ Infinite loop
+    bl      init_btns
+    bl       main_asm                                           @ Infinite loop
+    bl      install_alarm_isr
+    bl      set_alarm
+    bl      level_select
 
+level_select:
+    
 
 
 init_btns:
@@ -67,6 +72,27 @@ install_gpio_isr:
     ADD R1, R2
     STR R0, [R1]
     BX LR
+
+install_alarm_isr:
+@Installs alarm ISR, enables alarm0 irq
+    LDR R2, =(PPB_BASE + M0PLUS_VTOR_OFFSET)
+    LSR R1, [R2]
+    MOVS R2, #ALRM_ISR_OFFSET
+    ADD R2, R1
+
+    LDR R0, =alarm_isr
+    STR R0, [R2]
+
+    MOVS R0, #1
+    LDR R1, =(PPB_BASE + M0PLUS_NVIC_ICPR_OFFSET)
+    STR R0, [R1]
+
+    MOVS R0, #R1
+    LDR R1, =(PPB_BASE + M0PLUS_NVIC_ISER_OFFSET)
+    STR R0, [R1]
+    bx lr
+
+
 
 @ Set data alignment
 .data
