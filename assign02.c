@@ -6,7 +6,7 @@ void main_asm();
  * Main entry point for the code - simply calls the main assembly function.
  */
 int main() {
-    
+    char morsecode[26][5] = {".-","-...","-.-.","-..",".","..-.","--.","....","..",".---","-.-",".-..","--","-.","---",".--.","--.-",".-.","...","-","..-","...-",".--","-..-","-.--","..--"};
 
     stdio_init_all();
     gpio_set_irq_enabled(21, GPIO_IRQ_EDGE_FALL, true); // init GPIO 21 for falling edge detection
@@ -17,6 +17,7 @@ int main() {
     return(0);
 }
 
+//Creates and returns a new morse_code struct used to determine if the morse code entered is correct so far
 struct morse_code * new_morse_code(){
     struct morse_code * result;
     result ->pointer = 0;
@@ -25,6 +26,10 @@ struct morse_code * new_morse_code(){
     result ->items = morseCodeArray; 
     return result;
 }
+char * getMorseFromChar(char input){
+    
+}
+//read out which char the current morse code corresponds to
 char morseCodeRead(struct morse_code * input){
     if(input->pointer > 31){
         return '?';
@@ -33,6 +38,7 @@ char morseCodeRead(struct morse_code * input){
     return output;
 }
 
+//reset the morse_code struct for next input
 void morseCodeReset(struct morse_code * input){
     input->pointer = 0;
 }
@@ -42,14 +48,17 @@ int morseCodeValid(struct morse_code * input){
     }
     return 1;
 }
+
+//inputs a new dot into the morse_code struct
 void morseCodeDot(struct morse_code * input){
 
     input->pointer = ((input->pointer + 1) * 2)-1;
 }
 
 
-
+//inputs a new dash into the mors_code struct
 void morseCodeDash(struct morse_code * input){
 
     input->pointer = ((input->pointer + 1) * 2);
 }
+
