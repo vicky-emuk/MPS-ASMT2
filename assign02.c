@@ -63,6 +63,10 @@ int main() {
     gpio_set_irq_enabled(21, GPIO_IRQ_EDGE_RISE, true);
 
     printf("Welcome to group 23's Morse Code Game!\nHow to play?:\n To play, you simply have to enter the correct morse code sequence for the word (or character) displayed!\n Please select the difficulty you would like to play on by entering the corresponding morse code character\n");
+    printf("Level 1 (EASY) : - - - - -");
+    printf("Level 1 (HARD) : . - - - -");
+    printf("Level 2 (EASY) : . . - - -");
+    printf("Level 2 (HARD) : . . . - -");
     main_asm();
  
     // Initialise the PIO interface with the WS2812 code
@@ -100,4 +104,48 @@ int main() {
 
     // Should never get here due to infinite while-loop.
     return 0;
+}
+
+int level_1_easy(){
+    printf("Welcome to level 1! Easy edition...");
+}
+int level_1_hard(){
+    printf("Welcome to level 1! Hard edition...");
+}
+int level_2_easy(){
+    printf("Welcome to level 2! Easy edition...");
+}
+int level_2_hard(){
+    printf("Welcome to level 2! Hard edition...");
+}
+
+void main_asm();
+// Initialise a GPIO pin
+void asm_gpio_init(uint pin) {
+    gpio_init(pin);
+}
+
+// Set direction of a GPIO pin
+void asm_gpio_set_dir(uint pin, bool out) {
+    gpio_set_dir(pin, out);
+}
+
+// Get the value of a GPIO pin
+bool asm_gpio_get(uint pin) {
+    return gpio_get(pin);
+}
+
+// Set the value of a GPIO pin 
+void asm_gpio_put(uint pin, bool value) {
+    gpio_put(pin, value);
+}
+
+// Enable falling-edge interrupt 
+void asm_gpio_set_irq_fall(uint pin) {
+    gpio_set_irq_enabled(pin, GPIO_IRQ_EDGE_FALL, true);
+}
+
+// Enable rising-edge interrupt
+void asm_gpio_set_irq_rise(uint pin) {
+    gpio_set_irq_enabled(pin, GPIO_IRQ_EDGE_RISE, true);
 }
