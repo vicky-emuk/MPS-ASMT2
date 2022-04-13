@@ -4,6 +4,7 @@
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
 #include "ws2812.pio.h"
+#include "morseCode.h";
 
 #define IS_RGBW true        // Will use RGBW format
 #define NUM_PIXELS 1        // There is 1 WS2812 device in the chain
@@ -148,4 +149,59 @@ void asm_gpio_set_irq_fall(uint pin) {
 // Enable rising-edge interrupt
 void asm_gpio_set_irq_rise(uint pin) {
     gpio_set_irq_enabled(pin, GPIO_IRQ_EDGE_RISE, true);
+}
+
+//All functions related to the morse code will go here.
+
+//This struct is used for levels 1 and 2 and only contains the informations of a single char
+struct morse_code_letter * new_morse_code_letter(char letter){
+    
+    struct morse_code_letter * result;
+    result = malloc(sizeof(struct morse_code_letter));
+    result -> lives = 3;
+    result-> letter = letter;
+    int charPosition = (letter < 97 ? letter - 64 : letter - 96);
+    result -> morseCode = malloc(sizeof(char)*6);
+    strcpy(getMorseCode(charPosition), result->morseCode);
+    result->pointer = 0;
+    return result;
+}
+
+
+//This struct is used for levels 3 and 4 and contains a full word as well as 
+//the morsecode representation of that word in Morse Code separated by spaces
+struct morse_code_word * new_morse_code_word(char * word){
+    
+    struct morse_code_word * result;
+    result = malloc(sizeof(struct morse_code_word));
+    result -> lives = 3;
+    result-> word = malloc(sizeof(char)*6);
+    strcpy(result->word,word );
+    int length = strlen(result->word);
+    result->morseCode = malloc(sizeof(char));
+    for(int i = 0; i< length; i++){
+        int charPosition = (result->word[i] < 97 ? result->word[i] - 64 : result->word[i] - 96);
+        char * morseCodeForLetter = getMorseCode(charPosition);
+        char * temp = malloc(sizeof(char) * (strlen(result->morseCode)+ 
+        strlen(morseCodeForLetter)+1));
+        strcpy(temp,result->morseCode);
+        strcpy(temp, morseCodeForLetter);
+        if(i<length-1){
+            char * space = " ";
+            strcpy(temp, space);
+            
+        }
+        free(result->morseCode);
+        result->morseCode = temp;
+        free (morseCodeForLetter);
+    }
+    result->pointer = 0;
+    return result;
+}
+
+char * getMorseCode( int letterPos){
+    char morsecode[26][5] = {".-","-...","-.-.","-..",".","..-.","--.","....","..",".---","-.-",".-..","--","-.","---",".--.","--.-",".-.","...","-","..-","...-",".--","-..-","-.--","..--"};
+    char * morse = malloc(sizeof(char) * strlen(morsecode[letterPos-1]));
+    strcpy(morse, morsecode[letterPos-1]);
+    return morse;
 }
