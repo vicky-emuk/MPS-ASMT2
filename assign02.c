@@ -4,6 +4,7 @@
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
 #include "ws2812.pio.h"
+#include "hardware/watchdog.h"
 
 #define IS_RGBW true        // Will use RGBW format
 #define NUM_PIXELS 1        // There is 1 WS2812 device in the chain
@@ -12,7 +13,8 @@
 void main_asm(); 
 char input[30];
 int current_index = -1;
-le)
+absolute_time_t start_timer;
+
 void add_input(int number, int correct) {
     current_index = current_index - correct;
     if (current_index < 30) {
@@ -27,6 +29,13 @@ void add_input(int number, int correct) {
         }
     }
     current_index++;
+}
+
+void start_timer(){
+    start_timer = get_absolute_time();
+}
+int end_timer(){
+    int end_time = (int) absolute_time_diff_us(start_timer, get_absolute_time()); // find time inbetween, parse int 
 }
 /**
  * @brief Wrapper function used to call the underlying PIO
