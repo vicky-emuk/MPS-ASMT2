@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
@@ -8,6 +9,11 @@
 #define IS_RGBW true        // Will use RGBW format
 #define NUM_PIXELS 1        // There is 1 WS2812 device in the chain
 #define GPIO_PIN 28         // The GPIO pin that the light is connected to 
+
+ int levelOne();
+ int levelTwo();
+ int levelThree();
+ int levelFour();
 
 /**
  * @brief Wrapper function used to call the underlying PIO
@@ -51,113 +57,197 @@ static inline uint32_t urgb_u32(uint8_t r, uint8_t g, uint8_t b) {
  * @return uint32_t Returns the resulting composit 32-bit RGB value
  */
 static inline void colour_change(int colour) {
-    if(colour==4)  put_pixel(urgb_u32(0x00, 0x00, 0x6F));
-    else if(colour==3)  put_pixel(urgb_u32(0x00, 0x6F, 0x00));
-    else if(colour==2)  put_pixel(urgb_u32(0x6F, 0x40, 0x00));
-    else if(colour==1)  put_pixel(urgb_u32(0x6F, 0x00, 0x00));
+    if(colour==4)  put_pixel(urgb_u32(0x00, 0x00, 0x5F));
+    else if(colour==3)  put_pixel(urgb_u32(0x00, 0x5F, 0x00));
+    else if(colour==2)  put_pixel(urgb_u32(0x5F, 0x2F, 0x00));
+    else if(colour==1)  put_pixel(urgb_u32(0x5F, 0x00, 0x00));
     else if(colour==0)  put_pixel(urgb_u32(0x00, 0x00, 0x00));
 }
-int main() {
-    stdio_init_all();
-    gpio_set_irq_enabled(21, GPIO_IRQ_EDGE_FALL, true); // init GPIO 21 for falling edge detection
-    gpio_set_irq_enabled(21, GPIO_IRQ_EDGE_RISE, true);
- 
 
+
+/**
+ * @brief EXAMPLE - WS2812_RGB
+ *        Simple example to initialise the NeoPixel RGB LED on
+ *        the MAKER-PI-PICO and then flash it in alternating
+ *        colours between red, green and blue forever using
+ *        one of the RP2040 built-in PIO controllers.
+ * 
+ * @return int  Application return code (zero for success).
+ */
+int main() {
+ 
+    // Initialise all STDIO as we will be using the GPIOs
+    stdio_init_all();
+    srand(87);
+ 
     // Initialise the PIO interface with the WS2812 code
     PIO pio = pio0;
     uint offset = pio_add_program(pio, &ws2812_program);
     ws2812_program_init(pio, 0, offset, GPIO_PIN, 800000, IS_RGBW);
 
-    // Set the color to blue
+    printf("Welcome to group 23's Morse Code Game!\nHow to play?:\nTo play, you simply have to enter the correct morse code sequence for the word (or character) displayed!\nPlease select the difficulty you would like to play on by entering the corresponding morse code character\n");
+    // Set the color to red at half intensity
     colour_change(4);
+    sleep_ms(500);
 
-    printf("Welcome to group 23's More Code Game!\nHow to play?:\n To play, you simply have to enter the correct morse code sequence for the word (or character) displayed!\n Please select the difficulty you would like to play on by entering the corresponding morse code character\n");
-    main_asm();
+    int level=rand();
+    level%=4;
+    int complete=1;
 
-    int twentyPressed=0;
-    int level=1;
-    while(twentyPressed==0)
-    {
-        //button checks etc
-        if(asm_gpio_get(20))twentyPressed=1;
-        if(asm_gpio_get(21))
-        {
-            if(level==1)level=4;
-            else level--;
-        }
-        if(asm_gpio_get(22))
-        {
-            if(level==4)level=1;
-            else level++;
-        }
-    }
     switch(level)
     {
+        case 0:
+            complete=levelOne();
+            if(complete==0)break;
         case 1:
-            levelOne();
+            complete=levelTwo();
+            if(complete==0)break;
         case 2:
+            complete=levelThree();
+            if(complete==0)break;
         case 3:
-        case 4:
+            complete=levelFour();
             break;
         default :
         printf("Error");
+        levelOne();
     }
 
+    if(complete==1)printf("\ncongratulations");
+    else printf("\nYou lose, good day sir");
 
-    
-    // Set the color to blue at half intensity
-    colour_change(2);
-    sleep_ms(500);
-
-    // Set the color to blue at half intensity
-    colour_change(1);
-    sleep_ms(500);
-
-    // Set the color to blue at half intensity
-    colour_change(0);
-    sleep_ms(500);
-
-    // Should never get here due to infinite while-loop.
     return 0;
+
 }
 
-char** takeInDictionary()
-{
-    FILE *dictionary;
-    dictionary = (fopen("dictionary.txt", "r"));
-    if(fptr == NULL)
-    {
-        printf("File not present");
-        exit(1);
-    }
-}
-
-void levelOne()
-{
-    // Set the color to green
-    char** dictionary=takeInDictionary(); 
+int levelOne()
+{ 
     int lives=3;
     int correctInARow=0;
-    While((correctInARow<5)&&(lives>0))
+    char characters[36]={"abcdefghijklmnopqrstuvwxyz0123456789"};
+    while((correctInARow<5)&&(lives>0))
     {
         colour_change(lives);
 
-        //pick random letter
-        printf("%c",randomChar);
+        int r=rand();
+        r%=37;
+        printf("\n%c\n",characters+r);
 
-        //take in morse code 
+        int correctTest=rand();
+        correctTest%=2;
     
-        if(correct)
+        if(correctTest==1)
         {
-            printf("correct!");
+            printf("correct!\n");
             correctInARow++;
             if(lives<3)lives++;
         }
         else
         {
-            printf("Incorrect input!")
+            printf("Incorrect input!\n");
+            correctInARow=0;
+            lives--;
+        }
+    }   
+    if(lives==0)return 0;
+    return 1; 
+}
+
+int levelTwo()
+{ 
+    int lives=3;
+    int correctInARow=0;
+    char characters[36]={"abcdefghijklmnopqrstuvwxyz0123456789"};
+    while((correctInARow<5)&&(lives>0))
+    {
+        colour_change(lives);
+
+        int r=rand();
+        r%=37;
+        printf("\n%c\n",characters[r]);
+
+        int correctTest=rand();
+        correctTest%=1;
+    
+        if(correctTest==0)
+        {
+            printf("correct!\n");
+            correctInARow++;
+            if(lives<3)lives++;
+        }
+        else
+        {
+            printf("Incorrect input!\n");
             correctInARow=0;
             lives--;
         }
     }    
+    if(lives==0)return 0;
+    return 1;
+}
+
+int levelThree()
+{ 
+    int lives=3;
+    int correctInARow=0;
+    char words[7][7]={"daily","mount","fresh","quite","zebra","young","extra"};
+    while((correctInARow<5)&&(lives>0))
+    {
+        colour_change(lives);
+
+        int r=rand();
+        r%=7;
+        printf("\n%s\n",words+r);
+
+        int correctTest=rand();
+        correctTest%=2;
+    
+        if(correctTest==1)
+        {
+            printf("correct!\n");
+            correctInARow++;
+            if(lives<3)lives++;
+        }
+        else
+        {
+            printf("Incorrect input!\n");
+            correctInARow=0;
+            lives--;
+        }
+    }    
+    if(lives==0)return 0;
+    return 1;
+}
+
+int levelFour()
+{ 
+    int lives=3;
+    int correctInARow=0;
+    char words[7][7]={"daily","mount","fresh","quite","zebra","young","extra"};
+    while((correctInARow<5)&&(lives>0))
+    {
+        colour_change(lives);
+
+        int r=rand();
+        r%=7;
+        printf("\n%s\n",words+r);
+
+        int correctTest=rand();
+        correctTest%=2;
+    
+        if(correctTest==1)
+        {
+            printf("correct!\n");
+            correctInARow++;
+            if(lives<3)lives++;
+        }
+        else
+        {
+            printf("Incorrect input!\n");
+            correctInARow=0;
+            lives--;
+        }
+    }    
+    if(lives==0)return 0;
+    return 1;
 }
