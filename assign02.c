@@ -6,6 +6,40 @@
 #include "hardware/clocks.h"
 #include "ws2812.pio.h"
 
+void main_asm(); 
+char input[30];
+int current_index = -1;
+int level = 1;
+int checkLevels = 0;
+absolute_time_t startTimer;
+
+void add_input(int number, int correct) {
+    current_index = current_index - correct;
+    if (current_index < 30) {
+        if (number == 0) {
+            input[current_index] = '.';
+        } else if (number == 1) {
+            input[current_index] = '-';
+        } else if (number == 2) {
+            input[current_index] = ' ';
+        } else if (number == 3){
+            input[current_index] = '\0';
+        }
+    }
+    current_index++;
+}
+
+void start_timer(){
+    startTimer = get_absolute_time();
+}
+int end_timer(){
+    int end_time = (int) absolute_time_diff_us(startTimer, get_absolute_time()); // find time inbetween, parse int 
+}
+int levels_increment(){
+    if(checkLevels==1)level++; 
+}
+
+
 #define IS_RGBW true        // Will use RGBW format
 #define NUM_PIXELS 1        // There is 1 WS2812 device in the chain
 #define GPIO_PIN 28         // The GPIO pin that the light is connected to 
@@ -76,6 +110,7 @@ static inline void colour_change(int colour) {
  */
 int main() {
  
+    main_asm();
     // Initialise all STDIO as we will be using the GPIOs
     stdio_init_all();
     srand(87);
@@ -84,6 +119,13 @@ int main() {
     PIO pio = pio0;
     uint offset = pio_add_program(pio, &ws2812_program);
     ws2812_program_init(pio, 0, offset, GPIO_PIN, 800000, IS_RGBW);
+
+checkLevels=1;
+while(1==1)
+{
+    printf("%f\n",level);
+}
+checkLevels=0;
 
     printf("Welcome to group 23's Morse Code Game!\nHow to play?:\nTo play, you simply have to enter the correct morse code sequence for the word (or character) displayed!\nPlease select the difficulty you would like to play on by entering the corresponding morse code character\n");
     // Set the color to red at half intensity
@@ -96,16 +138,16 @@ int main() {
 
     switch(level)
     {
-        case 0:
+        case 1:
             complete=levelOne();
             if(complete==0)break;
-        case 1:
+        case 2:
             complete=levelTwo();
             if(complete==0)break;
-        case 2:
+        case 3:
             complete=levelThree();
             if(complete==0)break;
-        case 3:
+        case 4:
             complete=levelFour();
             break;
         default :
@@ -250,4 +292,34 @@ int levelFour()
     }    
     if(lives==0)return 0;
     return 1;
+}
+
+// Initialise a GPIO pin
+void asm_gpio_init(uint pin) {
+    gpio_init(pin);
+}
+
+// Set direction of a GPIO pin
+void asm_gpio_set_dir(uint pin, bool out) {
+    gpio_set_dir(pin, out);
+}
+
+// Get the value of a GPIO pin
+bool asm_gpio_get(uint pin) {
+    return gpio_get(pin);
+}
+
+// Set the value of a GPIO pin 
+void asm_gpio_put(uint pin, bool value) {
+    gpio_put(pin, value);
+}
+
+// Enable falling-edge interrupt 
+void asm_gpio_set_irq_fall(uint pin) {
+    gpio_set_irq_enabled(pin, GPIO_IRQ_EDGE_FALL, true);
+}
+
+// Enable rising-edge interrupt
+void asm_gpio_set_irq_rise(uint pin) {
+    gpio_set_irq_enabled(pin, GPIO_IRQ_EDGE_RISE, true);
 }

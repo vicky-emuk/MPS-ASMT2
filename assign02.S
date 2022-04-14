@@ -1,3 +1,8 @@
+#include "hardware/regs/addressmap.h"
+#include "hardware/regs/io_bank0.h"
+#include "hardware/regs/timer.h"
+#include "hardware/regs/m0plus.h"
+
 .syntax unified                                                 @ Specify unified assembly syntax
 .cpu    cortex-m0plus                                           @ Specify CPU type is Cortex M0+
 .thumb                                                          @ Specify thumb assembly for RP2040
@@ -8,7 +13,7 @@
 
 .equ    GPIO_BTN_DN_MSK, 0x00040000   @ Bit-18 for falling-edge event on GP20
 .equ    GPIO_BTN_EN_MSK, 0x00400000   @ Bit-22 for falling-edge event on GP21
-.equ    GPIO_BTN_UP_MSK, 0x04000000   @ Bit-26 for falling-edge event on GP22
+.equ    GPIO_BTN_UP_MSK, 0x00800000    @ Bit-22 for rising-edge event on GP21
 
 .equ    GPIO_BTN_DN,  20              @ Specify pin for the "down" button
 .equ    GPIO_BTN_EN,  21              @ Specify pin for the "enter" button
@@ -19,14 +24,37 @@
 
 .equ    GPIO_ISR_OFFSET, 0x74         @ GPIO is int #13 (vector table entry 29)
 .equ    ALRM_ISR_OFFSET, 0x40         @ ALARM0 is int #0 (vector table entry 16)
+.equ    INPUT_END_TIME, 3000000        @ Specify the default alarm timeout - 3 seconds
+.equ    INITIAL_STATE, 0               @ init alarm has not been run
+
 
 
 
 @ Entry point to the ASM portion of the program
 main_asm:
-    b       init_btns
-    b       main_asm                                           @ Infinite loop
+    push    {lr}
+    bl      init_btns           @ initalise button                                   @ Infinite loop
+    bl      install_alarm_isr   @ install alarm
+    bl      install_gpio_isr    @ instll gpio
+    pop     {pc}
+loop:
+push    {lr}
+    bl      set_alarm           @ loop to reset alarm for 3 seconds
+    wfi                         @ wait for interrupt
+    ldr     r2, =atimer         @ from labs - check if alar interrupt has ran
+    ldr     r1, [r2]            @ load value
+    movs    r0, #1              @ constant value for timer on
+    cmp     r0, r1              @ compare with variable
+    bne     loop                @ loop if not equal
+    movs    r0, #0              @ reset alarm interrupt by storing 0
+    str     r0, [r2]            @ storing in variable atimer
+    movs    r0, #3              @ end of string
+    movs    r1, #0              @ set next char to be inputted in next index
+    bl      add_input           @ add user input
+    pop     {pc}
 
+level_select:
+    
 
 
 init_btns:
@@ -34,20 +62,56 @@ init_btns:
     MOVS    R0, #GPIO_BTN_DN            
     BL      asm_gpio_init               @ Call subroutine to initialise the GPIO pin specified by R0
     MOVS    R0, #GPIO_BTN_DN            @ LED pin on PI PICO board
-    BL      asm_gpio_set_irq            @ Call the subroutine (catch falling edge)
+    BL      asm_gpio_set_irq_fall       @ Call the subroutine (catch falling edge)
+    //MOVS    R0, #GPIO_BTN_DN            @ LED pin on PI PICO board
+    //BL      asm_gpio_set_irq_rise       @ Call the subroutine (catch falling edge)
 
     MOVS    R0, #GPIO_BTN_EN            @ This value is the GPIO LED pin on the PI PICO board
     BL      asm_gpio_init               @ Call subroutine to init GPIO pin specified by R0
     MOVS    R0, #GPIO_BTN_EN            @ This value is the GPIO LED pin on the PI PICO board
-    BL      asm_gpio_set_irq            
+    BL      asm_gpio_set_irq_fall           @ Call the subroutine (catch falling edge)
+    MOVS    R0, #GPIO_BTN_EN            @ LED pin on PI PICO board
+    BL      asm_gpio_set_irq_rise            @ Call the subroutine (catch falling edge)
 
     MOVS    R0, #GPIO_BTN_UP            @ This value is the GPIO LED pin on the PI PICO board
     BL      asm_gpio_init               @ Call the subroutine to init GPIO pin specified by R0
     MOVS    R0, #GPIO_BTN_UP            @ This value is the GPIO LED pin on the PI PICO board
-    BL      asm_gpio_set_irq
+    BL      asm_gpio_set_irq_fall           @ Call the subroutine (catch falling edge)
+    //MOVS    R0, #GPIO_BTN_UP            @ LED pin on PI PICO board
+    //BL      asm_gpio_set_irq_rise            @ Call the subroutine (catch falling edge)
 
     pop     {pc}                        @ Pop the link register from the stack to the program counter
 
+set_alarm:
+    ldr     r2, =TIMER_BASE             @ get timer base reg address
+    movs    r1, #1                      @ set alarm
+    str     r1, [r2, #TIMER_INTE_OFFSET]       @ enable timer interrupy
+    ldr     r1, [r2, #TIMER_TIMELR_OFFSET]     @ get low time registers
+    ldr     r3, =ltimer                 @ current flash interval address
+    ldr     r0, [r3]                    @ get value of current flash interval
+    add     r1, r0                      @ add delay
+    str     r1, [r2, #TIMER_ALARM0_OFFSET]      @ set new alarm with delay
+    bx      lr                          @ exit subtountine
+
+install_alarm_isr:
+@Installs alarm ISR, enables alarm0 irq
+    LDR R2, =(PPB_BASE + M0PLUS_VTOR_OFFSET)
+    LDR R1, [R2]
+    MOVS R2, #ALRM_ISR_OFFSET
+    ADD R2, R1
+
+    LDR R0, =alrm_isr
+    STR R0, [R2]
+
+    MOVS R0, #1
+    LDR R1, =(PPB_BASE + M0PLUS_NVIC_ICPR_OFFSET)
+    STR R0, [R1]
+
+    LDR R1, =(PPB_BASE + M0PLUS_NVIC_ISER_OFFSET)
+    STR R0, [R1]
+    bx lr
+
+.thumb_func
 
 install_gpio_isr:
     LDR R2, =PPB_BASE                           
@@ -68,6 +132,76 @@ install_gpio_isr:
     STR R0, [R1]
     BX LR
 
+alrm_isr:
+    push    {lr}
+    ldr     r2, =TIMER_BASE         @ timer_base register address
+    movs    r1, #1                  @ constant value to set alarm
+    str     r1, [r2, #TIMER_INTR_OFFSET]    @ reset alarm
+    ldr     r2, =atimer             @ address of variable
+    movs    r0, #1                  @ constant value
+    str     r0, [r2]                @ store constant value
+    pop     {pc}
+
+.thumb_func 
+gpio_isr:
+    push    {lr}
+    ldr     r2, =(IO_BANK0_BASE + IO_BANK0_PROC0_INTS2_OFFSET)      @ Read the interrupt status event from the (IO_BANK0_BASE + IO_BANK0_PROC0_INTS2_OFFSET) register
+    ldr     r1, [r2]                @ acknowledge interrupt
+    ldr     r0, =GPIO_BTN_DN_MSK    @ store mask in register
+    cmp     r0, r1          @ compare interrupt with mask
+    bl      button_levels_increment
+    ldr     r0, =GPIO_BTN_UP_MSK    @ mask for rising edge
+    cmp     r0, r1
+    beq     rising_edge
+handle:
+    //bl      start_timer         @ time to next interrupt
+    pop     {pc}
+
+button_levels_increment:
+    bl      levels_increment
+    ldr     r1, =(IO_BANK0_BASE + IO_BANK0_INTR2_OFFSET)
+    movs    r0, #0                          
+    str     r0, [r1]
+    pop     {pc}
+
+falling_edge:
+    ldr     r2, =(IO_BANK0_BASE + IO_BANK0_INTR2_OFFSET)    @ address of INTR2 Register
+    ldr     r1, =GPIO_BTN_DN_MSK        @ mask for gpio21 falling edge
+    str     r1, [r2]                    @ reset gpio21 ISR
+    bl      end_timer                   @ end timer
+    movs    r1, #1                      @ store 1 second
+    cmp     r0, r1                      @ check if one second passed
+    bgt     add_space                   @ if greater than one second, it is a space
+    b       add_dot                         @ if its less then one second, branch to dot
+rising_edge:
+    ldr     r2, =(IO_BANK0_BASE + IO_BANK0_INTR2_OFFSET)     @ address of INTR2 Register
+    ldr     r1, =GPIO_BTN_UP_MSK        @ mask for gpio21 rising edge
+    str     r1, [r2]                    @ reset gpio21 ISR
+    bl      end_timer                   @ end timer
+    movs    r1, #1                      @ store 1 second
+    cmp     r0, r1                      @ check if one second passed
+    bgt     add_dash                    @ if greater than one second, it is a dash
+    b       handle                      @ else, restart timer
+add_dot:
+    movs    r0, #0                      @ number for dot is 0
+    movs    r1, #0                      @ set next char to be inputted in next index
+    bl      add_input                   @ add user input
+    b       handle
+add_space:
+    movs    r0, #2                      @ number for space is 2
+    movs    r1, #0                      @ set next char to be inputted in next index
+    bl      add_input                   @ add user input
+add_dash:
+    movs    r0, #1                      @ number for dash is 2
+    movs    r1, #0                      @ set next char to be inputted in next index
+    bl      add_input                   @ add user input
+    b       handle
+
 @ Set data alignment
+
+.align 4
+msg0:   .asciz "Use the GPIO 21 button to input your Morse Code Sequence."
+msg1:   .asciz  "Use the GPIO 20 and GPIO 21 buttons to scroll up and down"
 .data
-    .align 4
+ltimer:     .word   INPUT_END_TIME  @ store current alarm time
+atimer:     .word   INITIAL_STATE   @init state of alarm
