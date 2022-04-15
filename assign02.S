@@ -145,6 +145,7 @@ alrm_isr:
 .thumb_func 
 gpio_isr:
     push    {lr}
+    bl      set_watchdog_update
     ldr     r2, =(IO_BANK0_BASE + IO_BANK0_PROC0_INTS2_OFFSET)      @ Read the interrupt status event from the (IO_BANK0_BASE + IO_BANK0_PROC0_INTS2_OFFSET) register
     ldr     r1, [r2]                @ acknowledge interrupt
     ldr     r0, =GPIO_BTN_DN_MSK    @ store mask in register

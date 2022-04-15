@@ -1,14 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
-<<<<<<< HEAD
 #include <string.h>
 
-=======
-#include <time.h>
->>>>>>> d11e3d168d1fa2b1223bac1d3f891304a7690ca9
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
+#include "hardware/watchdog.h"
 #include "ws2812.pio.h"
 
 void main_asm(); 
