@@ -1,7 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
+<<<<<<< HEAD
 #include <string.h>
 
+=======
+#include <time.h>
+>>>>>>> d11e3d168d1fa2b1223bac1d3f891304a7690ca9
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
 #include "hardware/clocks.h"
@@ -15,6 +19,10 @@ int gameStage = 0;
 absolute_time_t startTimer;
 absolute_time_t lastInput;
 int sinceLast;
+
+void set_watchdog_update(){
+    watchdog_update();
+}
 
 void add_input(int number) {
     if(gameStage==1)gameStage=2;
@@ -324,6 +332,14 @@ static inline void colour_change(int colour) {
 int main() {
  
     main_asm();
+    watchdog_enable(9000, 1);
+    if (watchdog_caused_reboot()){
+        printf("Reboot Sucessful!\n");
+    }
+    else{
+        printf("Not Watchdog Reboot.\n");
+    }
+
     // Initialise all STDIO as we will be using the GPIOs
     stdio_init_all();
     srand(87);
