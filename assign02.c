@@ -12,6 +12,8 @@ int current_index = 0;
 int level = 1;
 int gameStage = 0;
 absolute_time_t startTimer;
+absolute_time_t lastInput;
+int sinceLast;
 
 void add_input(int number) {
     if(gameStage==1)gameStage=2;
@@ -86,11 +88,131 @@ char inputDecode()
     else return '?';
 }
 
+void printMorse(char chosenChar)
+{
+    switch(chosenChar)
+    {
+        case 'A':
+            printf(".-");
+            break;
+        case 'B':
+            printf("-...");
+            break;
+        case 'C':
+            printf("-.-.");
+            break;
+        case 'D':
+            printf("-..");
+            break;
+        case 'E':
+            printf(".");
+            break;
+        case 'F':
+            printf("..-.");
+            break;
+        case 'G':
+            printf("--.");
+            break;
+        case 'H':
+            printf("....");
+            break;
+        case 'I':
+            printf("..");
+            break;       
+        case 'J':
+            printf(".---");
+            break;
+        case 'K':
+            printf("-.-");
+            break;
+        case 'L':
+            printf(".-..");
+            break;
+        case 'M':
+            printf("--");
+            break;
+        case 'N':
+            printf("-.");
+            break;
+        case 'O':
+            printf("---");
+            break;
+        case 'P':
+            printf(".--.");
+            break;
+        case 'Q':
+            printf("--.-");
+            break;
+        case 'R':
+            printf(".-."); 
+            break;    
+        case 'S':
+            printf("...");
+            break;
+        case 'T':
+            printf("-");
+            break;
+        case 'U':
+            printf("..-");
+            break;       
+        case 'V':
+            printf("...-");
+            break;
+        case 'W':
+            printf(".--");
+            break;
+        case 'X':
+            printf("-..-");
+            break;
+        case 'Y':
+            printf("-.--");
+            break;
+        case 'Z':
+            printf("--..");
+            break;
+        case '0':
+            printf("-----");
+            break;
+        case '1':
+            printf(".----");
+            break;
+        case '2':
+            printf("...--");
+            break;
+        case '3':
+            printf("...--"); 
+            break;    
+        case '4':
+            printf("....-");
+            break;
+        case '5':
+            printf(".....");
+            break;
+        case '6':
+            printf("-....");
+            break;
+        case '7':
+            printf("--...");
+            break;
+        case '8':
+            printf("---..");
+            break;
+        case '9':
+            printf("----."); 
+            break;  
+        default :
+            printf("Error");
+    }
+    printf("\n");
+}
+
 void start_timer(){
     startTimer = get_absolute_time();
+    sinceLast= (int) absolute_time_diff_us(lastInput, startTimer);
 }
 int end_timer(){
     absolute_time_t end_time = get_absolute_time();
+    lastInput = get_absolute_time();
     return (int) absolute_time_diff_us(startTimer, end_time); // find time inbetween, parse int 
 }
 void levels_increment(){
@@ -217,7 +339,7 @@ int main() {
     }
 
     if(complete==1)printf("\ncongratulations");
-    else printf("\nYou lose, good day sir");
+    else printf("\nYou lose, good day sir!\n");
 
     return 0;
 
@@ -225,7 +347,49 @@ int main() {
 
 int levelOne()
 { 
-    printf("Beginning with level one");
+    printf("\nBeginning with level one");
+    int lives=3;
+    int correctInARow=0;
+    char characters[36]={"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"};
+    while((correctInARow<5)&&(lives>0))
+    {
+        colour_change(lives);
+
+        uint32_t random=to_ms_since_boot(get_absolute_time());
+        random%=37;
+        printf("\n%c\n",characters[random]);
+        printMorse(characters[random]);
+
+        gameStage=3;
+        while(gameStage==3)
+        {   
+            int re=4;
+            printf("",re);
+        }
+
+        char inputChar=inputDecode();
+        printf("%c\n",inputChar);
+
+        if(inputChar==characters[random])
+        {
+            printf("\ncorrect!\n");
+            correctInARow++;
+            if(lives<3)lives++;
+        }
+        else
+        {
+            printf("\nIncorrect!\n");
+            correctInARow=0;
+            lives--;
+        }
+    }   
+    if(lives==0)return 0;
+    return 1; 
+}
+
+int levelTwo()
+{ 
+    printf("\nLevel Two");
     int lives=3;
     int correctInARow=0;
     char characters[36]={"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"};
@@ -245,16 +409,17 @@ int levelOne()
         }
 
         char inputChar=inputDecode();
+        printf("%c\n",inputChar);
 
         if(inputChar==characters[random])
         {
-            printf("correct!\n");
+            printf("\ncorrect!\n");
             correctInARow++;
             if(lives<3)lives++;
         }
         else
         {
-            printf("Incorrect input!\n");
+            printf("\nIncorrect!\n");
             correctInARow=0;
             lives--;
         }
@@ -263,41 +428,9 @@ int levelOne()
     return 1; 
 }
 
-int levelTwo()
-{ 
-    int lives=3;
-    int correctInARow=0;
-    char characters[36]={"abcdefghijklmnopqrstuvwxyz0123456789"};
-    while((correctInARow<5)&&(lives>0))
-    {
-        colour_change(lives);
-
-        int r=rand();
-        r%=37;
-        printf("\n%c\n",characters[r]);
-
-        int correctTest=rand();
-        correctTest%=1;
-    
-        if(correctTest==0)
-        {
-            printf("correct!\n");
-            correctInARow++;
-            if(lives<3)lives++;
-        }
-        else
-        {
-            printf("Incorrect input!\n");
-            correctInARow=0;
-            lives--;
-        }
-    }    
-    if(lives==0)return 0;
-    return 1;
-}
-
 int levelThree()
 { 
+    printf("\nLevel Three");
     int lives=3;
     int correctInARow=0;
     char words[7][7]={"daily","mount","fresh","quite","zebra","young","extra"};
@@ -305,14 +438,15 @@ int levelThree()
     {
         colour_change(lives);
 
-        int r=rand();
-        r%=7;
-        printf("\n%s\n",words+r);
-
-        int correctTest=rand();
-        correctTest%=2;
+        uint32_t random=to_ms_since_boot(get_absolute_time());
+        random%=7;
+        printf("\n%s\n",words[random]);
+        for(int i=0;i<5;i++)
+        {
+            printMorse(words[random][i]);
+        }
     
-        if(correctTest==1)
+        if(1==1)
         {
             printf("correct!\n");
             correctInARow++;

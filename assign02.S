@@ -197,7 +197,7 @@ button_main_released:
     str     r0, [r1]
     ldr     r0, [r1]
     bl      end_timer
-    ldr     r1, =1000000                      @ store 1 second
+    ldr     r1, =300000                      @ store 1 second
     cmp     r0, r1  
     bgt     add_dash 
     b       add_dot
