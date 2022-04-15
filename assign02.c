@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #include "pico/stdlib.h"
 #include "hardware/pio.h"
@@ -7,7 +8,7 @@
 #include "ws2812.pio.h"
 
 void main_asm(); 
-char input[30];
+char userInput[30];
 int current_index = 0;
 int level = 1;
 int gameStage = 0;
@@ -18,16 +19,44 @@ int sinceLast;
 void add_input(int number) {
     if(gameStage==1)gameStage=2;
     else if (current_index<30&&gameStage==3) {
-        if (number == 0) {
-            input[current_index] = '.';
-            printf(".");
-        } else if (number == 1) {
-            input[current_index] = '-';
-            printf("-");
-        } else if (number == 2) {
-            input[current_index] = ' ';
-        } else if (number == 3){
-            input[current_index] = '\0';
+        if(level==1||level==2)
+        {
+            if (number == 0) {
+                userInput[current_index] = '.';
+                printf(".");
+            } else if (number == 1) {
+                userInput[current_index] = '-';
+                printf("-");
+            } else if (number == 2) {
+                userInput[current_index] = ' ';
+            } else if (number == 3){
+                userInput[current_index] = '\0';
+            }
+        }
+        else if(level==3||level==4)
+        {
+            if(sinceLast>1000000&&current_index!=0)
+            {
+                if (number == 0) {
+                    userInput[current_index++] = ' ';
+                    userInput[current_index] = '.';
+                    printf(" .");
+                } else if (number == 1) {
+                    userInput[current_index++] = ' ';
+                    userInput[current_index] = '-';
+                    printf(" -");
+                }
+            }
+            else
+            {
+                if (number == 0) {
+                    userInput[current_index] = '.';
+                    printf(".");
+                } else if (number == 1) {
+                    userInput[current_index] = '-';
+                    printf("-");
+                }
+            }
         }
         current_index++;
     }
@@ -38,13 +67,13 @@ void flush_input()
     if(gameStage==3)
     {
         gameStage=4;
-        input[current_index]='*';
+        userInput[current_index]='*';
         current_index=0;
         printf("\n");
     }
 }
 
-char inputDecode()
+char inputDecode(char* input)
 {
     // Letters
     if(input[0]=='.'&&input[1]=='-'&&input[2]=='*')return 'A';
@@ -203,7 +232,6 @@ void printMorse(char chosenChar)
         default :
             printf("Error");
     }
-    printf("\n");
 }
 
 void start_timer(){
@@ -359,6 +387,7 @@ int levelOne()
         random%=37;
         printf("\n%c\n",characters[random]);
         printMorse(characters[random]);
+        printf("\n");
 
         gameStage=3;
         while(gameStage==3)
@@ -367,7 +396,7 @@ int levelOne()
             printf("",re);
         }
 
-        char inputChar=inputDecode();
+        char inputChar=inputDecode(userInput);
         printf("%c\n",inputChar);
 
         if(inputChar==characters[random])
@@ -408,7 +437,7 @@ int levelTwo()
             printf("",re);
         }
 
-        char inputChar=inputDecode();
+        char inputChar=inputDecode(userInput);
         printf("%c\n",inputChar);
 
         if(inputChar==characters[random])
@@ -433,20 +462,61 @@ int levelThree()
     printf("\nLevel Three");
     int lives=3;
     int correctInARow=0;
-    char words[7][7]={"daily","mount","fresh","quite","zebra","young","extra"};
+    char words[8][7]={"DAILY","MOUNT","FRESH","QUICK","ZEBRA","YOUNG","EXTRA","WEDGE"};
     while((correctInARow<5)&&(lives>0))
     {
         colour_change(lives);
 
         uint32_t random=to_ms_since_boot(get_absolute_time());
-        random%=7;
+        random%=8;
         printf("\n%s\n",words[random]);
         for(int i=0;i<5;i++)
         {
             printMorse(words[random][i]);
+            printf(" ");
+        }
+        printf("\n");
+
+        gameStage=3;
+        while(gameStage==3)
+        {   
+            int re=4;
+            printf("",re);
+        }
+
+        char userWord[7];
+        char currentChar;
+        int i=0;
+        int j=0;
+        int k=0;
+        char currentLetter[10];
+        int decoded=0;
+        while(decoded==0)
+        {
+            currentChar=userInput[i++];
+            char inputChar;
+            switch(currentChar)
+            {
+                case '*':
+                    currentLetter[j]=currentChar;
+                    inputChar=inputDecode(currentLetter);
+                    userWord[k]=inputChar;
+                    decoded=1;
+                    break;
+                case ' ':
+                    currentLetter[j]='*';
+                    inputChar=inputDecode(currentLetter);
+                    userWord[k++]=inputChar;
+                    j=0;
+                    break;
+                default:
+                    currentLetter[j++]=currentChar;
+                    //int re=4;
+                    //printf("",re);
+            }
         }
     
-        if(1==1)
+        if(strcmp(userWord, words[random])==0)
         {
             printf("correct!\n");
             correctInARow++;
@@ -465,21 +535,58 @@ int levelThree()
 
 int levelFour()
 { 
+    printf("\nLevel Four");
     int lives=3;
     int correctInARow=0;
-    char words[7][7]={"daily","mount","fresh","quite","zebra","young","extra"};
+    char words[8][7]={"DAILY","MOUNT","FRESH","QUICK","ZEBRA","YOUNG","EXTRA","WEDGE"};
     while((correctInARow<5)&&(lives>0))
     {
         colour_change(lives);
 
-        int r=rand();
-        r%=7;
-        printf("\n%s\n",words+r);
+        uint32_t random=to_ms_since_boot(get_absolute_time());
+        random%=8;
+        printf("\n%s\n",words[random]);
 
-        int correctTest=rand();
-        correctTest%=2;
+        gameStage=3;
+        while(gameStage==3)
+        {   
+            int re=4;
+            printf("",re);
+        }
+
+        char userWord[7];
+        char currentChar;
+        int i=0;
+        int j=0;
+        int k=0;
+        char currentLetter[10];
+        int decoded=0;
+        while(decoded==0)
+        {
+            currentChar=userInput[i++];
+            char inputChar;
+            switch(currentChar)
+            {
+                case '*':
+                    currentLetter[j]=currentChar;
+                    inputChar=inputDecode(currentLetter);
+                    userWord[k]=inputChar;
+                    decoded=1;
+                    break;
+                case ' ':
+                    currentLetter[j]='*';
+                    inputChar=inputDecode(currentLetter);
+                    userWord[k++]=inputChar;
+                    j=0;
+                    break;
+                default:
+                    currentLetter[j++]=currentChar;
+                    //int re=4;
+                    //printf("",re);
+            }
+        }
     
-        if(correctTest==1)
+        if(strcmp(userWord, words[random])==0)
         {
             printf("correct!\n");
             correctInARow++;
