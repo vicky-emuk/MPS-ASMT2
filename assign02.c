@@ -36,7 +36,15 @@ int end_timer(){
     int end_time = (int) absolute_time_diff_us(startTimer, get_absolute_time()); // find time inbetween, parse int 
 }
 int levels_increment(){
-    if(checkLevels==1)level++; 
+    if(checkLevels==1)
+    {
+        if(level==4) level=1;
+        else level++;
+    } 
+    printf("New level is %i\n",level);
+}
+int main_button(){
+    if(checkLevels==1)checkLevels=2;
 }
 
 
@@ -120,20 +128,18 @@ int main() {
     uint offset = pio_add_program(pio, &ws2812_program);
     ws2812_program_init(pio, 0, offset, GPIO_PIN, 800000, IS_RGBW);
 
-checkLevels=1;
-while(1==1)
-{
-    printf("%f\n",level);
-}
-checkLevels=0;
-
     printf("Welcome to group 23's Morse Code Game!\nHow to play?:\nTo play, you simply have to enter the correct morse code sequence for the word (or character) displayed!\nPlease select the difficulty you would like to play on by entering the corresponding morse code character\n");
     // Set the color to red at half intensity
     colour_change(4);
-    sleep_ms(500);
 
-    int level=rand();
-    level%=4;
+
+    checkLevels=1;
+    printf("Current level is %i\n",level);
+    while(checkLevels==1)
+    {
+        
+    }
+
     int complete=1;
 
     switch(level)
@@ -164,6 +170,7 @@ checkLevels=0;
 
 int levelOne()
 { 
+    printf("Beginning with level one");
     int lives=3;
     int correctInARow=0;
     char characters[36]={"abcdefghijklmnopqrstuvwxyz0123456789"};

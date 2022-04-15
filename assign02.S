@@ -149,19 +149,36 @@ gpio_isr:
     ldr     r1, [r2]                @ acknowledge interrupt
     ldr     r0, =GPIO_BTN_DN_MSK    @ store mask in register
     cmp     r0, r1          @ compare interrupt with mask
-    bl      button_levels_increment
-    ldr     r0, =GPIO_BTN_UP_MSK    @ mask for rising edge
+    beq     button_levels_increment
+    ldr     r0, =GPIO_BTN_EN_MSK    @ mask for rising edge
     cmp     r0, r1
-    beq     rising_edge
+    beq     button_main_pressed
 handle:
     //bl      start_timer         @ time to next interrupt
     pop     {pc}
 
+.thumb_func 
 button_levels_increment:
     bl      levels_increment
     ldr     r1, =(IO_BANK0_BASE + IO_BANK0_INTR2_OFFSET)
-    movs    r0, #0                          
+    ldr     r0, [r1]
+    ldr     r0, =GPIO_BTN_UP_MSK     
+    ldr     r2, [r1]
+    orrs    r0, r0, r2          
     str     r0, [r1]
+    ldr     r0, [r1]
+    pop     {pc}
+
+.thumb_func 
+button_main_pressed:
+    bl      main_button
+    ldr     r1, =(IO_BANK0_BASE + IO_BANK0_INTR2_OFFSET)
+    ldr     r0, [r1]
+    ldr     r0, =GPIO_BTN_EN_MSK     
+    ldr     r2, [r1]
+    orrs    r0, r0, r2          
+    str     r0, [r1]
+    ldr     r0, [r1]
     pop     {pc}
 
 falling_edge:
