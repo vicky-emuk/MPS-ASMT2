@@ -41,6 +41,7 @@ main_asm:
 loop:
 push    {lr}
     bl      set_alarm           @ loop to reset alarm for 3 seconds
+    bl      set_watchdog_update
     wfi                         @ wait for interrupt
     ldr     r2, =atimer         @ from labs - check if alar interrupt has ran
     ldr     r1, [r2]            @ load value
@@ -159,8 +160,10 @@ gpio_isr:
     ldr     r0, =GPIO_BTN_UP_MSK    @ mask for rising edge
     cmp     r0, r1
     beq     button_flush_input
-handle:
+handle:     // disable pending interrupt
     //bl      start_timer         @ time to next interrupt
+    ldr    r3, =(IO_BANK0_BASE + IO_BANK0_INTR2_OFFSET)
+    str     r0, [r3]
     pop     {pc}
 
 .thumb_func 
