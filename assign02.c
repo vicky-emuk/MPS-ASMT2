@@ -44,13 +44,46 @@ void flush_input()
 
 char inputDecode()
 {
+    // Letters
     if(input[0]=='.'&&input[1]=='-'&&input[2]=='*')return 'A';
     else if(input[0]=='-'&&input[1]=='.'&&input[2]=='.'&&input[3]=='.'&&input[4]=='*')return 'B';
+    else if(input[0]=='-'&&input[1]=='.'&&input[2]=='-'&&input[3]=='.'&&input[4]=='*')return 'C';
+    else if(input[0]=='-'&&input[1]=='.'&&input[2]=='.'&&input[3]=='*')return 'D';
     else if(input[0]=='.'&&input[1]=='*')return 'E';
+    else if(input[0]=='.'&&input[1]=='.'&&input[2]=='-'&&input[3]=='.'&&input[4]=='*')return 'F';
+    else if(input[0]=='-'&&input[1]=='-'&&input[2]=='.'&&input[3]=='*')return 'G';
     else if(input[0]=='.'&&input[1]=='.'&&input[2]=='.'&&input[3]=='.'&&input[4]=='*')return 'H';
     else if(input[0]=='.'&&input[1]=='.'&&input[2]=='*')return 'I';
+    else if(input[0]=='.'&&input[1]=='-'&&input[2]=='-'&&input[3]=='-'&&input[4]=='*')return 'J';
+    else if(input[0]=='-'&&input[1]=='.'&&input[2]=='-'&&input[3]=='*')return 'K';
+    else if(input[0]=='.'&&input[1]=='-'&&input[2]=='.'&&input[3]=='.'&&input[4]=='*')return 'L';
+    else if(input[0]=='-'&&input[1]=='-'&&input[2]=='*')return 'M';
+    else if(input[0]=='-'&&input[1]=='.'&&input[2]=='*')return 'N';
+    else if(input[0]=='-'&&input[1]=='-'&&input[2]=='-'&&input[3]=='*')return 'O';
+    else if(input[0]=='.'&&input[1]=='-'&&input[2]=='-'&&input[3]=='.'&&input[4]=='*')return 'P';
+    else if(input[0]=='-'&&input[1]=='-'&&input[2]=='.'&&input[3]=='-'&&input[4]=='*')return 'Q';
+    else if(input[0]=='.'&&input[1]=='-'&&input[2]=='.'&&input[3] == '*')return 'R';
     else if(input[0]=='.'&&input[1]=='.'&&input[2]=='.'&&input[3]=='*')return 'S';
-    return '?';
+    else if(input[0]=='-'&&input[1]=='*')return 'T';
+    else if(input[0]=='.'&&input[1]=='.'&&input[2]=='-'&&input[3]=='*')return 'U';
+     else if(input[0]=='.'&&input[1]=='.'&&input[2]=='.'&&input[3]=='-'&&input[4]=='*')return 'V';
+     else if(input[0]=='.'&&input[1]=='-'&&input[2]=='-'&&input[3]=='*')return 'W';
+     else if(input[0]=='-'&&input[1]=='.'&&input[2]=='.'&&input[3]=='-'&&input[4]=='*')return 'X';
+     else if(input[0]=='-'&&input[1]=='.'&&input[2]=='-'&&input[3]=='-'&&input[4]=='*')return 'Y';
+     else if(input[0]=='-'&&input[1]=='-'&&input[2]=='.'&&input[3]=='.'&&input[4]=='*')return 'Z';
+
+     // Numbers
+     else if(input[0]=='-'&&input[1]=='-'&&input[2]=='-'&&input[3]=='-'&&input[4]=='-'&&input[5]== '*')return '0';
+     else if(input[0]=='.'&&input[1]=='-'&&input[2]=='-'&&input[3]=='-'&&input[4]=='-'&&input[5]== '*')return '1';
+     else if(input[0]=='.'&&input[1]=='.'&&input[2]=='-'&&input[3]=='-'&&input[4]=='-'&&input[5]== '*')return '2';
+     else if(input[0]=='.'&&input[1]=='.'&&input[2]=='.'&&input[3]=='-'&&input[4]=='-'&&input[5]== '*')return '3';
+     else if(input[0]=='.'&&input[1]=='.'&&input[2]=='.'&&input[3]=='.'&&input[4]=='-'&&input[5]== '*')return '4';
+     else if(input[0]=='.'&&input[1]=='.'&&input[2]=='.'&&input[3]=='.'&&input[4]=='.'&&input[5]== '*')return '5';
+     else if(input[0]=='-'&&input[1]=='.'&&input[2]=='.'&&input[3]=='.'&&input[4]=='.'&&input[5]== '*')return '6';
+     else if(input[0]=='-'&&input[1]=='-'&&input[2]=='.'&&input[3]=='.'&&input[4]=='.'&&input[5]== '*')return '7';
+     else if(input[0]=='-'&&input[1]=='-'&&input[2]=='-'&&input[3]=='.'&&input[4]=='.'&&input[5]== '*')return '8';
+     else if(input[0]=='-'&&input[1]=='-'&&input[2]=='-'&&input[3]=='-'&&input[4]=='.'&&input[5]== '*')return '9';
+    else return '?';
 }
 
 void start_timer(){
