@@ -113,6 +113,7 @@ install_alarm_isr:
     bx lr
 
 .thumb_func
+//installs the gpio isr
 install_gpio_isr:
     LDR R2, =PPB_BASE                           
     LDR R1, =M0PLUS_VTOR_OFFSET
@@ -165,6 +166,8 @@ handle:
     pop     {pc}
 
 .thumb_func 
+//This is the gpio interrupt handler for the level select button
+//will increment between the different level choices
 button_levels_increment:
     bl      levels_increment
     ldr     r1, =(IO_BANK0_BASE + IO_BANK0_INTR2_OFFSET)
@@ -177,6 +180,8 @@ button_levels_increment:
     pop     {pc}
 
 .thumb_func 
+//This is the gpio interrupt handler for the main button
+
 button_main_pressed:
     bl      start_timer
     ldr     r1, =(IO_BANK0_BASE + IO_BANK0_INTR2_OFFSET)
@@ -189,6 +194,7 @@ button_main_pressed:
     pop     {pc}
 
 .thumb_func 
+//Handles all of the morse code inputs as well as selevting the level
 button_main_released:
     ldr     r1, =(IO_BANK0_BASE + IO_BANK0_INTR2_OFFSET)
     ldr     r0, [r1]
@@ -205,6 +211,7 @@ button_main_released:
     pop     {pc}
 
 .thumb_func 
+//Enter button for entering the user's input
 button_flush_input:
     bl      flush_input
     ldr     r1, =(IO_BANK0_BASE + IO_BANK0_INTR2_OFFSET)
@@ -241,8 +248,9 @@ add_dot:
 add_space:
     movs    r0, #2                      @ number for space is 2
     bl      add_input                   @ add user input
+    b       handle
 add_dash:
-    movs    r0, #1                      @ number for dash is 2
+    movs    r0, #1                      @ number for dash is 1
     bl      add_input                   @ add user input
     b       handle
 

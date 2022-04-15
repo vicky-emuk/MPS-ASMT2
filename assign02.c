@@ -16,11 +16,27 @@ int gameStage = 0;
 absolute_time_t startTimer;
 absolute_time_t lastInput;
 int sinceLast;
+int spaces;
 
 void set_watchdog_update(){
     watchdog_update();
 }
 
+
+//called by the enter key to enter the current user's input and check it
+void flush_input()
+{
+    if(gameStage==3)
+    {
+        gameStage=4;
+        userInput[current_index]='*';
+        current_index=0;
+        printf("\n");
+    }
+}
+
+
+//Tags on the proper character based on the user input
 void add_input(int number) {
     if(gameStage==1)gameStage=2;
     else if (current_index<30&&gameStage==3) {
@@ -33,7 +49,7 @@ void add_input(int number) {
                 userInput[current_index] = '-';
                 printf("-");
             } else if (number == 2) {
-                userInput[current_index] = ' ';
+                flush_input();
             } else if (number == 3){
                 userInput[current_index] = '\0';
             }
@@ -67,17 +83,8 @@ void add_input(int number) {
     }
 }
 
-void flush_input()
-{
-    if(gameStage==3)
-    {
-        gameStage=4;
-        userInput[current_index]='*';
-        current_index=0;
-        printf("\n");
-    }
-}
 
+//This will decode morse code into the character it is meant to represent
 char inputDecode(char* input)
 {
     // Letters
@@ -122,6 +129,7 @@ char inputDecode(char* input)
     else return '?';
 }
 
+//This is used for the levels to translate each charachter into morse code to print to the screen.
 void printMorse(char chosenChar)
 {
     switch(chosenChar)
@@ -239,10 +247,14 @@ void printMorse(char chosenChar)
     }
 }
 
+// This function starts a timer to tell if a user has waiter between inputs
 void start_timer(){
     startTimer = get_absolute_time();
     sinceLast= (int) absolute_time_diff_us(lastInput, startTimer);
 }
+
+//This function ends the timer to check if the user has waited between inputs
+//returns a the differenct between times to be parsed
 int end_timer(){
     absolute_time_t end_time = get_absolute_time();
     lastInput = get_absolute_time();
@@ -352,6 +364,7 @@ int main() {
 
 
     gameStage=1;
+    // This code waits for user input to select the lever using the level select button(gp20)
     printf("Current level is %i\n",level);
     while(gameStage==1)
     {
@@ -386,6 +399,8 @@ int main() {
 
 }
 
+//In this level it waits for the enter button(gp22) to be pressed before parsing the user input
+//it also prints out the morse code for each letter that the player has to enter
 int levelOne()
 { 
     printf("\nBeginning with level one");
@@ -397,12 +412,13 @@ int levelOne()
         colour_change(lives);
 
         uint32_t random=to_ms_since_boot(get_absolute_time());
-        random%=37;
+        random%=36;
         printf("\n%c\n",characters[random]);
         printMorse(characters[random]);
         printf("\n");
 
         gameStage=3;
+        //waits here while the user inputs their answer. breaks once they hit the enter button.
         while(gameStage==3)
         {   
             int re=4;
@@ -429,6 +445,8 @@ int levelOne()
     return 1; 
 }
 
+// This level acts the same as level one but will not print out the 
+//morse code of the letter the player has to enter
 int levelTwo()
 { 
     printf("\nLevel Two");
@@ -440,10 +458,11 @@ int levelTwo()
         colour_change(lives);
 
         uint32_t random=to_ms_since_boot(get_absolute_time());
-        random%=37;
+        random%=36;
         printf("\n%c\n",characters[random]);
 
         gameStage=3;
+        //waits here while the user inputs their answer. breaks once they hit the enter button.
         while(gameStage==3)
         {   
             int re=4;
@@ -470,6 +489,9 @@ int levelTwo()
     return 1; 
 }
 
+//This level prints out one of eight words for the player to enter plus the 
+//morse code for each input. If the player waits a while between inputs then
+// a space will be added before the next input
 int levelThree()
 { 
     printf("\nLevel Three");
@@ -491,12 +513,13 @@ int levelThree()
         printf("\n");
 
         gameStage=3;
+        //waits here while the user inputs their answer. breaks once they hit the enter button.
         while(gameStage==3)
         {   
             int re=4;
             printf("",re);
         }
-
+        //This code is all dedicated to decoding the user's input to compare it to the proper input
         char userWord[7];
         char currentChar;
         int i=0;
@@ -528,7 +551,7 @@ int levelThree()
                     //printf("",re);
             }
         }
-    
+        //Compares the two inputs once the user input is decoded.
         if(strcmp(userWord, words[random])==0)
         {
             printf("correct!\n");
@@ -546,6 +569,9 @@ int levelThree()
     return 1;
 }
 
+
+//This level acts much the same as level three but doesn't provide the input
+// for each word
 int levelFour()
 { 
     printf("\nLevel Four");
@@ -561,12 +587,13 @@ int levelFour()
         printf("\n%s\n",words[random]);
 
         gameStage=3;
+        //waits here while the user inputs their answer. breaks once they hit the enter button.
         while(gameStage==3)
         {   
             int re=4;
             printf("",re);
         }
-
+        //This code is all dedicated to decoding the user's input to compare it to the proper input
         char userWord[7];
         char currentChar;
         int i=0;
@@ -598,7 +625,7 @@ int levelFour()
                     //printf("",re);
             }
         }
-    
+        //Compares the two inputs once the user input is decoded.
         if(strcmp(userWord, words[random])==0)
         {
             printf("correct!\n");
