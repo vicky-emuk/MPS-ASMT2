@@ -328,18 +328,11 @@ static inline void colour_change(int colour) {
     else if(colour==0)  put_pixel(urgb_u32(0x00, 0x00, 0x00));
 }
 
-
-/**
- * @brief EXAMPLE - WS2812_RGB
- *        Simple example to initialise the NeoPixel RGB LED on
- *        the MAKER-PI-PICO and then flash it in alternating
- *        colours between red, green and blue forever using
- *        one of the RP2040 built-in PIO controllers.
- * 
- * @return int  Application return code (zero for success).
- */
-int main() {
- 
+    printf("Welcome to group 23's Morse Code Game!\nHow to play?:\n To play, you simply have to enter the correct morse code sequence for the word (or character) displayed!\n Please select the difficulty you would like to play on by entering the corresponding morse code character\n");
+    printf("Level 1 (EASY) : - - - - -");
+    printf("Level 1 (HARD) : . - - - -");
+    printf("Level 2 (EASY) : . . - - -");
+    printf("Level 2 (HARD) : . . . - -");
     main_asm();
     watchdog_enable(9000, 1);
     if (watchdog_caused_reboot()){
@@ -643,6 +636,50 @@ int levelFour()
     return 1;
 }
 
+// Initialise a GPIO pin
+void asm_gpio_init(uint pin) {
+    gpio_init(pin);
+}
+
+// Set direction of a GPIO pin
+void asm_gpio_set_dir(uint pin, bool out) {
+    gpio_set_dir(pin, out);
+}
+
+// Get the value of a GPIO pin
+bool asm_gpio_get(uint pin) {
+    return gpio_get(pin);
+}
+
+// Set the value of a GPIO pin 
+void asm_gpio_put(uint pin, bool value) {
+    gpio_put(pin, value);
+}
+
+// Enable falling-edge interrupt 
+void asm_gpio_set_irq_fall(uint pin) {
+    gpio_set_irq_enabled(pin, GPIO_IRQ_EDGE_FALL, true);
+}
+
+// Enable rising-edge interrupt
+void asm_gpio_set_irq_rise(uint pin) {
+    gpio_set_irq_enabled(pin, GPIO_IRQ_EDGE_RISE, true);
+}
+
+int level_1_easy(){
+    printf("Welcome to level 1! Easy edition...");
+}
+int level_1_hard(){
+    printf("Welcome to level 1! Hard edition...");
+}
+int level_2_easy(){
+    printf("Welcome to level 2! Easy edition...");
+}
+int level_2_hard(){
+    printf("Welcome to level 2! Hard edition...");
+}
+
+void main_asm();
 // Initialise a GPIO pin
 void asm_gpio_init(uint pin) {
     gpio_init(pin);
