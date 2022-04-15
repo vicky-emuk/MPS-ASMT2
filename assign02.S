@@ -12,8 +12,9 @@
 
 
 .equ    GPIO_BTN_DN_MSK, 0x00040000   @ Bit-18 for falling-edge event on GP20
-.equ    GPIO_BTN_EN_MSK, 0x00400000   @ Bit-22 for falling-edge event on GP21
-.equ    GPIO_BTN_UP_MSK, 0x00800000    @ Bit-22 for rising-edge event on GP21
+.equ    GPIO_BTN_ENF_MSK, 0x00400000   @ Bit-22 for falling-edge event on GP21
+.equ    GPIO_BTN_ENR_MSK, 0x00800000    @ Bit-22 for rising-edge event on GP21
+.equ    GPIO_BTN_UP_MSK, 0x04000000    @ Bit-22 for falling-edge event on GP22
 
 .equ    GPIO_BTN_DN,  20              @ Specify pin for the "down" button
 .equ    GPIO_BTN_EN,  21              @ Specify pin for the "enter" button
@@ -112,7 +113,6 @@ install_alarm_isr:
     bx lr
 
 .thumb_func
-
 install_gpio_isr:
     LDR R2, =PPB_BASE                           
     LDR R1, =M0PLUS_VTOR_OFFSET
@@ -150,9 +150,15 @@ gpio_isr:
     ldr     r0, =GPIO_BTN_DN_MSK    @ store mask in register
     cmp     r0, r1          @ compare interrupt with mask
     beq     button_levels_increment
-    ldr     r0, =GPIO_BTN_EN_MSK    @ mask for rising edge
+    ldr     r0, =GPIO_BTN_ENF_MSK    @ mask for rising edge
     cmp     r0, r1
     beq     button_main_pressed
+    ldr     r0, =GPIO_BTN_ENR_MSK    @ mask for rising edge
+    cmp     r0, r1
+    beq     button_main_released
+    ldr     r0, =GPIO_BTN_UP_MSK    @ mask for rising edge
+    cmp     r0, r1
+    beq     button_flush_input
 handle:
     //bl      start_timer         @ time to next interrupt
     pop     {pc}
@@ -162,7 +168,7 @@ button_levels_increment:
     bl      levels_increment
     ldr     r1, =(IO_BANK0_BASE + IO_BANK0_INTR2_OFFSET)
     ldr     r0, [r1]
-    ldr     r0, =GPIO_BTN_UP_MSK     
+    ldr     r0, =GPIO_BTN_ENR_MSK    
     ldr     r2, [r1]
     orrs    r0, r0, r2          
     str     r0, [r1]
@@ -171,10 +177,38 @@ button_levels_increment:
 
 .thumb_func 
 button_main_pressed:
-    bl      main_button
+    bl      start_timer
     ldr     r1, =(IO_BANK0_BASE + IO_BANK0_INTR2_OFFSET)
     ldr     r0, [r1]
-    ldr     r0, =GPIO_BTN_EN_MSK     
+    ldr     r0, =GPIO_BTN_ENF_MSK     
+    ldr     r2, [r1]
+    orrs    r0, r0, r2          
+    str     r0, [r1]
+    ldr     r0, [r1]
+    pop     {pc}
+
+.thumb_func 
+button_main_released:
+    ldr     r1, =(IO_BANK0_BASE + IO_BANK0_INTR2_OFFSET)
+    ldr     r0, [r1]
+    ldr     r0, =GPIO_BTN_ENR_MSK     
+    ldr     r2, [r1]
+    orrs    r0, r0, r2          
+    str     r0, [r1]
+    ldr     r0, [r1]
+    bl      end_timer
+    ldr     r1, =1000000                      @ store 1 second
+    cmp     r0, r1  
+    bgt     add_dash 
+    b       add_dot
+    pop     {pc}
+
+.thumb_func 
+button_flush_input:
+    bl      flush_input
+    ldr     r1, =(IO_BANK0_BASE + IO_BANK0_INTR2_OFFSET)
+    ldr     r0, [r1]
+    ldr     r0, =GPIO_BTN_UP_MSK     
     ldr     r2, [r1]
     orrs    r0, r0, r2          
     str     r0, [r1]
@@ -192,7 +226,7 @@ falling_edge:
     b       add_dot                         @ if its less then one second, branch to dot
 rising_edge:
     ldr     r2, =(IO_BANK0_BASE + IO_BANK0_INTR2_OFFSET)     @ address of INTR2 Register
-    ldr     r1, =GPIO_BTN_UP_MSK        @ mask for gpio21 rising edge
+    ldr     r1, =GPIO_BTN_ENR_MSK        @ mask for gpio21 rising edge
     str     r1, [r2]                    @ reset gpio21 ISR
     bl      end_timer                   @ end timer
     movs    r1, #1                      @ store 1 second
@@ -201,16 +235,13 @@ rising_edge:
     b       handle                      @ else, restart timer
 add_dot:
     movs    r0, #0                      @ number for dot is 0
-    movs    r1, #0                      @ set next char to be inputted in next index
     bl      add_input                   @ add user input
     b       handle
 add_space:
     movs    r0, #2                      @ number for space is 2
-    movs    r1, #0                      @ set next char to be inputted in next index
     bl      add_input                   @ add user input
 add_dash:
     movs    r0, #1                      @ number for dash is 2
-    movs    r1, #0                      @ set next char to be inputted in next index
     bl      add_input                   @ add user input
     b       handle
 

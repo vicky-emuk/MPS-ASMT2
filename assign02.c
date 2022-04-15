@@ -8,43 +8,65 @@
 
 void main_asm(); 
 char input[30];
-int current_index = -1;
+int current_index = 0;
 int level = 1;
-int checkLevels = 0;
+int gameStage = 0;
 absolute_time_t startTimer;
 
-void add_input(int number, int correct) {
-    current_index = current_index - correct;
-    if (current_index < 30) {
+void add_input(int number) {
+    if(gameStage==1)gameStage=2;
+    else if (current_index<30&&gameStage==3) {
         if (number == 0) {
             input[current_index] = '.';
+            printf(".");
         } else if (number == 1) {
             input[current_index] = '-';
+            printf("-");
         } else if (number == 2) {
             input[current_index] = ' ';
         } else if (number == 3){
             input[current_index] = '\0';
         }
+        current_index++;
     }
-    current_index++;
+}
+
+void flush_input()
+{
+    if(gameStage==3)
+    {
+        gameStage=4;
+        input[current_index]='*';
+        current_index=0;
+        printf("\n");
+    }
+}
+
+char inputDecode()
+{
+    if(input[0]=='.'&&input[1]=='-'&&input[2]=='*')return 'A';
+    else if(input[0]=='-'&&input[1]=='.'&&input[2]=='.'&&input[3]=='.'&&input[4]=='*')return 'B';
+    else if(input[0]=='.'&&input[1]=='*')return 'E';
+    else if(input[0]=='.'&&input[1]=='.'&&input[2]=='.'&&input[3]=='.'&&input[4]=='*')return 'H';
+    else if(input[0]=='.'&&input[1]=='.'&&input[2]=='*')return 'I';
+    else if(input[0]=='.'&&input[1]=='.'&&input[2]=='.'&&input[3]=='*')return 'S';
+    return '?';
 }
 
 void start_timer(){
     startTimer = get_absolute_time();
 }
 int end_timer(){
-    int end_time = (int) absolute_time_diff_us(startTimer, get_absolute_time()); // find time inbetween, parse int 
+    absolute_time_t end_time = get_absolute_time();
+    return (int) absolute_time_diff_us(startTimer, end_time); // find time inbetween, parse int 
 }
-int levels_increment(){
-    if(checkLevels==1)
+void levels_increment(){
+    if(gameStage==1)
     {
         if(level==4) level=1;
         else level++;
+        printf("New level is %i\n",level);
     } 
-    printf("New level is %i\n",level);
-}
-int main_button(){
-    if(checkLevels==1)checkLevels=2;
 }
 
 
@@ -133,9 +155,9 @@ int main() {
     colour_change(4);
 
 
-    checkLevels=1;
+    gameStage=1;
     printf("Current level is %i\n",level);
-    while(checkLevels==1)
+    while(gameStage==1)
     {
         
     }
@@ -173,19 +195,25 @@ int levelOne()
     printf("Beginning with level one");
     int lives=3;
     int correctInARow=0;
-    char characters[36]={"abcdefghijklmnopqrstuvwxyz0123456789"};
+    char characters[36]={"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"};
     while((correctInARow<5)&&(lives>0))
     {
         colour_change(lives);
 
-        int r=rand();
-        r%=37;
-        printf("\n%c\n",characters+r);
+        uint32_t random=to_ms_since_boot(get_absolute_time());
+        random%=37;
+        printf("\n%c\n",characters[random]);
 
-        int correctTest=rand();
-        correctTest%=2;
-    
-        if(correctTest==1)
+        gameStage=3;
+        while(gameStage==3)
+        {   
+            int re=4;
+            printf("",re);
+        }
+
+        char inputChar=inputDecode();
+
+        if(inputChar==characters[random])
         {
             printf("correct!\n");
             correctInARow++;
